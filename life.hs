@@ -11,8 +11,8 @@ predFazParte celulaAtual (h : t) =
 -- Dado uma cordenada, transformar celula em viva ou zumbi (dependendo do modo) se cordenada fizer parte da lista 
 decidirValor :: Int -> [Int] -> Int -> [[Int]] -> Int
 decidirValor modo celulaAtual valorAntigoDaCelula listaCelulasVivas
-    | (predFazParte celulaAtual listaCelulasVivas) == True = modo
-    | (predFazParte celulaAtual listaCelulasVivas) == False = valorAntigoDaCelula
+    | (predFazParte celulaAtual listaCelulasVivas) = modo
+    | otherwise = valorAntigoDaCelula
 
 -- Percorrer Grid Vazia e mudar o valor de celulas para vivas se a celula pertencer a lista de celulas vivas
 lidarComLinha :: Int -> Int -> Int -> [Int] -> [[Int]] -> [Int]
@@ -100,18 +100,18 @@ destino :: Int -> [Int] -> [[Int]] -> Int
 destino valorInicial celulaAtual mundo
     | valorInicial == 0 =
         case () of 
-            ()  | reprod celulaAtual mundo == True -> 1
+            ()  | reprod celulaAtual mundo -> 1
                 | otherwise -> valorInicial
         
     | valorInicial == 1 =
         case () of
-            ()  | infec celulaAtual mundo == True -> 2
-                | subpop celulaAtual mundo == True -> 0
-                | superpop celulaAtual mundo == True -> 0
+            ()  | infec celulaAtual mundo -> 2
+                | subpop celulaAtual mundo -> 0
+                | superpop celulaAtual mundo -> 0
                 | otherwise -> valorInicial
     | valorInicial == 2 =
         case () of
-            ()  | inani celulaAtual mundo == True -> 0
+            ()  | inani celulaAtual mundo -> 0
                 | otherwise -> valorInicial
 
 
@@ -126,7 +126,13 @@ avancarLinha valorColunaAtual valorLinhaAtual (h : t) mundo =
 avancarDestino :: Int -> [[Int]] -> [[Int]]
 avancarDestino valorLinhaAtual [] = []
 avancarDestino valorLinhaAtual (h : t) =
-    [(avancarLinha 0 valorLinhaAtual h (h : t))] ++ avancarDestino (valorLinhaAtual + 1) t 
+    [(avancarLinha 0 valorLinhaAtual h (h : t))] ++ avancarDestino (valorLinhaAtual + 1) t
+
+vida :: Int -> Int -> [[Int]] -> [[Int]] -> [[Int]]
+vida 0 cont mundoAnterior mundo = mundo ++ [[cont - 1]]
+vida n cont mundoAnterior mundo 
+    | mundoAnterior == mundo = mundo ++ [[cont - 1]]
+    | otherwise = (vida (n-1) (cont + 1) mundo (avancarDestino 0 mundo))
 
 main = do
     putStrLn "Numero de iterações desejada: "
