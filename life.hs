@@ -46,13 +46,87 @@ apararBordas vizinhos mundo =
     filter (\x -> predFazParte x mundo) vizinhos
 
 
--- Função vizinhos
-vizinhos :: Int -> [Int] -> [[Int]] -> [[Int]]
-vizinhos linhaAtual celulaAtual mundo =
-    mundo
+-- Funções vizinhos
+vizinhos :: [Int] -> Int -> [[Int]]
+vizinhos celulaAtual tamanhoMundo =
+    apararBordas (possiveisVizinhos celulaAtual) (coordenadasMundo tamanhoMundo)
+
+valoresVizinhos :: [[Int]] -> [[Int]] -> [Int]
+valoresVizinhos [] mundo = []
+valoresVizinhos (h : t) mundo =
+    (mundo !! (h !! 0) !! (h !! 1)) : valoresVizinhos t mundo
+
+--Contar quantos vizinhos vivos e zumbis
+qntVivas :: [Int] -> Int
+qntVivas vizinhos =
+    length (filter (\x -> x == 1) vizinhos)
+
+qntZumbis :: [Int] -> Int
+qntZumbis vizinhos =
+    length (filter (\x -> x == 2) vizinhos)
+
+-- Predicados regras destino
+-- Para celulas mortas
+reprod :: [Int] -> [[Int]] -> Bool
+reprod celulaAtual mundo 
+    | (qntVivas (valoresVizinhos (vizinhos celulaAtual (length mundo)) mundo) == 3) = True
+    | otherwise = False
+
+-- Para celulas vivas
+infec :: [Int] -> [[Int]] -> Bool
+infec celulaAtual mundo
+    | (qntZumbis (valoresVizinhos (vizinhos celulaAtual (length mundo)) mundo) >= 2) = True
+    | otherwise = False
+
+subpop :: [Int] -> [[Int]] -> Bool
+subpop celulaAtual mundo
+    | (qntVivas (valoresVizinhos (vizinhos celulaAtual (length mundo)) mundo) < 2 &&  qntZumbis (valoresVizinhos (vizinhos celulaAtual (length mundo)) mundo) < 2) = True
+    | otherwise = False
+
+superpop :: [Int] -> [[Int]] -> Bool
+superpop celulaAtual mundo
+    | (qntVivas (valoresVizinhos (vizinhos celulaAtual (length mundo)) mundo) > 3 &&  qntZumbis (valoresVizinhos (vizinhos celulaAtual (length mundo)) mundo) == 0) = True
+    | otherwise = False
+
+-- Para celulas Zumbis
+inani :: [Int] -> [[Int]] -> Bool
+inani celulaAtual mundo
+    | (qntVivas (valoresVizinhos (vizinhos celulaAtual (length mundo)) mundo) == 0 ) = True
+    | otherwise = False
+
 
 -- Função Destino
+destino :: Int -> [Int] -> [[Int]] -> Int
+destino valorInicial celulaAtual mundo
+    | valorInicial == 0 =
+        case () of 
+            ()  | reprod celulaAtual mundo == True -> 1
+                | otherwise -> valorInicial
+        
+    | valorInicial == 1 =
+        case () of
+            ()  | infec celulaAtual mundo == True -> 2
+                | subpop celulaAtual mundo == True -> 0
+                | superpop celulaAtual mundo == True -> 0
+                | otherwise -> valorInicial
+    | valorInicial == 2 =
+        case () of
+            ()  | inani celulaAtual mundo == True -> 0
+                | otherwise -> valorInicial
+
+
+
+
 -- Aplicar função destino em cada celula por cada iteração
+avancarLinha :: Int -> Int -> [Int] -> [[Int]] -> [Int]
+avancarLinha valorColunaAtual valorLinhaAtual [] mundo = []
+avancarLinha valorColunaAtual valorLinhaAtual (h : t) mundo = 
+    [(destino h ([valorLinhaAtual, valorColunaAtual]) mundo)] ++ avancarLinha (valorColunaAtual + 1) valorLinhaAtual t mundo
+
+avancarDestino :: Int -> [[Int]] -> [[Int]]
+avancarDestino valorLinhaAtual [] = []
+avancarDestino valorLinhaAtual (h : t) =
+    [(avancarLinha 0 valorLinhaAtual h (h : t))] ++ avancarDestino (valorLinhaAtual + 1) t 
 
 main = do
     putStrLn "Numero de iterações desejada: "
