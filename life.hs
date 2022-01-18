@@ -129,13 +129,33 @@ avancarDestino valorLinhaAtual (h : t) =
     [(avancarLinha 0 valorLinhaAtual h (h : t))] ++ avancarDestino (valorLinhaAtual + 1) t
 
 vida :: Int -> Int -> [[Int]] -> [[Int]] -> [[Int]]
-vida 0 cont mundoAnterior mundo = mundo ++ [[cont - 1]]
+-- vida 0 cont mundoAnterior mundo = mundo ++ [[cont - 1]]
+vida 0 cont mundoAnterior mundo = mundo
 vida n cont mundoAnterior mundo 
-    | mundoAnterior == mundo = mundo ++ [[cont - 1]]
+    -- | mundoAnterior == mundo = mundo ++ [[cont - 1]]
+    | mundoAnterior == mundo = mundo
     | otherwise = (vida (n-1) (cont + 1) mundo (avancarDestino 0 mundo))
+
+historico :: Int -> [[Int]] -> [[[Int]]]
+historico 0 mundo = [mundo]
+historico n mundo = 
+    [vida n 0 [] mundo] ++ (historico (n-1) mundo) 
 
 main = do
     putStrLn "Numero de iterações desejada: "
     input <- getLine
-    let n = read input :: Integer
-    putStrLn input
+    let n = read input :: Int
+
+    let tamanho = 6
+
+    let celulasVivasInicio = [[1,1],[1,2],[3,4],[3,3],[0,1]]
+    let celulasZumbiInicio = [[1,3], [0,2]]
+
+    let m = criarMundo tamanho celulasVivasInicio celulasZumbiInicio
+
+    let final = historico n m
+
+    writeFile "saida.txt" ((show tamanho) ++"\n" ++ (show final))
+
+
+--     putStrLn input
