@@ -128,6 +128,17 @@ avancarDestino valorLinhaAtual [] = []
 avancarDestino valorLinhaAtual (h : t) =
     [(avancarLinha 0 valorLinhaAtual h (h : t))] ++ avancarDestino (valorLinhaAtual + 1) t
 
+historico :: Int -> [[Int]] -> [[[Int]]]
+historico 0 mundo = [mundo]
+historico n mundo = 
+    [vida n 0 [] mundo] ++ (historico (n-1) mundo)
+
+reverseL :: [[[Int]]] -> [[[Int]]]
+reverseL [] = []
+reverseL (h : t) =
+    reverse t ++ [h]
+
+--Função principal
 vida :: Int -> Int -> [[Int]] -> [[Int]] -> [[Int]]
 -- vida 0 cont mundoAnterior mundo = mundo ++ [[cont - 1]]
 vida 0 cont mundoAnterior mundo = mundo
@@ -136,24 +147,21 @@ vida n cont mundoAnterior mundo
     | mundoAnterior == mundo = mundo
     | otherwise = (vida (n-1) (cont + 1) mundo (avancarDestino 0 mundo))
 
-historico :: Int -> [[Int]] -> [[[Int]]]
-historico 0 mundo = [mundo]
-historico n mundo = 
-    [vida n 0 [] mundo] ++ (historico (n-1) mundo) 
-
 main = do
     putStrLn "Numero de iterações desejada: "
     input <- getLine
     let n = read input :: Int
 
-    let tamanho = 6
+    let tamanho = 20
 
-    let celulasVivasInicio = [[1,1],[1,2],[3,4],[3,3],[0,1]]
-    let celulasZumbiInicio = [[1,3], [0,2]]
+    let celulasVivasInicio = [[5, 5], [6, 6], [4, 4], [4,5]]
+    let celulasZumbiInicio = []
 
     let m = criarMundo tamanho celulasVivasInicio celulasZumbiInicio
 
-    let final = historico n m
+    let final = reverseL(historico n m)
+
+    
 
     writeFile "saida.txt" ((show tamanho) ++"\n" ++ (show final))
 
